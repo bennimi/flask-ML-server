@@ -1,0 +1,1 @@
+docker run --volumes-from airflow_webserver airflow-setup_webserver flask-setup_webserver 
