@@ -1,14 +1,14 @@
-FROM python:3.6-slim
+FROM flask-setup_webpage:latest #python:3.6-slim
 
 COPY . /usr/app/
 
 WORKDIR /usr/app/
 
 ## internal port
-EXPOSE 5000
+#EXPOSE 5000
 
-RUN pip install -r requirements.txt
+#RUN pip install -r requirements.txt
 
 ## startup app when build container
-#CMD bash python flask_app.py
+#CMD python flask_app.py
 

@@ -5,7 +5,7 @@
 info: flask app
 """
 
-from flask import Flask, request
+from flask import Flask, request, render_template
 import pandas as pd
 import numpy as np
 import pickle, sys, time, itertools, collections, glob
@@ -21,29 +21,42 @@ class TextTransformer(BaseEstimator, TransformerMixin):
     def transform(self, X):
         return X[self.key]
 
-path = "C:/Virtual-Environments/docker-shared/airflow-setup/datasets/cleaned/"
-#df_name = "checked.csv"
+#path = "C:/Virtual-Environments/docker-shared/airflow-setup/datasets/cleaned/"
+path = "/usr/app/"
 model_name = 'svc'
 
 app = Flask(__name__) #run when .py is called 
 
 #all_files = glob.glob(path+"*.pkl")
 
-
 model = pickle.load(open(path+model_name+".pkl", 'rb'))
 
+@app.route('/about')
+def project_about():
+    context = {'title':"About",
+               'header':"About this page"}
 
-@app.route('/tweet',methods=['GET'])
+    return render_template('about.html', context=context)
+
+
+@app.route('/tweet',methods=['GET','POST'])
 def model_predict():
-    
-    in_text = request.args.get('tweet')
-       
-    #in_text = "This is a test to see if I am happy"
+    context = {'title':"predict tweets",
+               'header':"About this page"}
 
+    in_text = request.form.get('input_tweet')   
+    #in_text = "This is a test to see if I am happy"
+    
+    if not in_text:
+        return render_template('single_predict.html',context=context)
+    
     pred = model.predict(pd.DataFrame([in_text], columns = ['tweet']))
 
-    if pred[0] == 4: return "This is a postive tweet"
-    if pred[0] == 0: return "This is a negative tweet"
+    #if pred[0] == 4: return "This is a postive tweet"
+    #if pred[0] == 0: return "This is a negative tweet"
+    return render_template('single_predict.html',
+                           context=context,pred=pred[0],
+                           in_text=in_text)
 
 @app.route('/tweets_csv',methods=['POST'])
 def model_predict_file():
@@ -55,4 +68,6 @@ def model_predict_file():
     
     return str(preds_percentage_neg) + " of tweets are negative\n\n" + str((preds))
 if __name__ == '__main__':
-    app.run()
+    #app.run()
+    app.run(host='0.0.0.0',port=8000) #,debug=True)
+  
