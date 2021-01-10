@@ -2,23 +2,17 @@
 {% extends 'base.html' %}
 
 {% block content %}
-<style>
-    #container {
-        margin-left:50px;
-        /*margin: 0 auto;
-        #width:2000px;*/
-    }
-</style>
+
 <div class = "container", id="container">
 <form action="/tweet" method="POST">
 <div class="mb-3">
   <label for="exampleFormControlTextarea1" class="form-label" >Which tweet do you want to classify?</label>
   <div class="form-group w-50">
   <textarea placeholder="input tweet here" name="input_tweet" class="form-control" 
-            id="exampleFormControlTextarea1" rows="2" ></textarea>
+            id="exampleFormControlTextarea1" rows="2" required></textarea>
   </div>
 </div>
-<button type="submit" class="btn btn-primary">Predict!</button>
+<button type="submit" class="btn btn-primary">Predict</button>
 </form>
 <br/><br/>
 {% if in_text %}
@@ -27,7 +21,6 @@
   <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
 </div>
 {% endif %}
-<br/>
 
 </div>
 

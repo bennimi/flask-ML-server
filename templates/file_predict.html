@@ -1,0 +1,32 @@
+
+{% extends 'base.html' %}
+
+{% block content %}
+
+<div class = "container", id="container">
+<form class="was-validated" action="/file" method="POST" >
+
+ <div class="mb-3"> 
+<div class="col-md-3">
+    <input type="file" accept=".csv,.txt" name="input_file" class="form-control" aria-label="file example" required>
+ </div>
+ </div>
+    <div class="invalid-feedback">Please only add files of .txt or .csv!</div>
+  <div class="mb-3">
+    <button class="btn btn-primary" type="submit" disabled>Submit</button>
+  </div>
+</form>
+</div> 
+
+<script>
+    var form = document.querySelector('.needs-validations');
+    form.addEventListener('submit',function(event){
+        var filename = 
+        if (form.checkValidity() == False) {
+        event.preventDefault();
+        event.stopPropagation();
+        }
+        form.classList.add('was-validated')
+    })
+</script>
+{% endblock %}

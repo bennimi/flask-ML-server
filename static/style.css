@@ -1,0 +1,9 @@
+body {
+  background-color: ghostwhite;
+}
+
+div.container {
+    margin-left:20px;
+    /*margin: 0 auto;
+    #width:2000px;*/
+}
