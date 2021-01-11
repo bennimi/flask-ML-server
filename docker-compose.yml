@@ -1,0 +1,9 @@
+version: '3'
+services:
+  webpage:
+    build: . # dockerfile
+    environment:
+      - FLASK_ENV=development
+    ports:
+      - "8000:8000"  
+    command: python flask_app.py

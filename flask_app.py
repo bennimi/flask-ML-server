@@ -82,17 +82,21 @@ def model_predict():
 def model_predict_file():
     
     if request.method == 'POST':
-        in_file = request.files.get('input_file')
-        print(in_file)
-        # in_file = pd.read_csv(,names=['tweet'])
-        # preds = model.predict(in_file)
-        # preds_percentage = collections.Counter(preds)
-        # preds_percentage_neg = round(preds_percentage[0]/preds,2)
-        # print(preds_percentage_neg)
-        return render_template('file_predict.html',context=context)
+        in_file = pd.read_csv(request.files['inputfile'],index_col=None, names=['tweet'])
+
+        print("--> Uploaded file name: " + request.files['inputfile'].filename, flush=True)
+        print("Shape of input: {}".format(in_file.shape),flush=True)
+        # for row in in_file.iterrows():
+        #     print(row,flush=True)
+        preds = model.predict(in_file)
+        print("--> Predictions: {}".format(preds), flush=True)
+        preds_percentage = collections.Counter(preds)
+        preds_percentage_neg = round(preds_percentage[0]/len(preds),2)
+        print("--> Percentage of negative tweets in upload: {}".format(preds_percentage_neg),flush=True)
+        return redirect(request.url)
         
     else:
-       return render_template('file_predict.html',context=context)
+        return render_template('file_predict.html',context=context)
     
 
     #return str(preds_percentage_neg) + " of tweets are negative\n\n" + str((preds))
