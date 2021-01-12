@@ -4,11 +4,12 @@
 {% block content %}
 
 
+
 <div class = "container", id="container">
 <form id= "fileinput-form" action="/file" method="POST", enctype="multipart/form-data" >
   <div class="form-group col-md-4" >
-    <input class="form-control" type="file" accept=".csv,.txt" id="inputfile" name="inputfile" aria-label="file example">
-    <input id="hidden-input" type="hidden">
+    <input  class="form-control" type="file" accept=".csv,.txt" id="inputfile" name="inputfile" aria-label="file example">   
+    <input class="form-control" id="hidden-input" type="hidden">
     <i class="fas fa-check-circle"></i>
     <i class="fas fa-exclamation-circle"></i>
   </div>
@@ -20,8 +21,28 @@
 
 {% endblock %}
 
+
 {% block script %}
 <script>
-
+$("#inputfile").bind("change",function(){
+   var filesize = this.files[0].size;
+   console.log(filesize);
+   console.log(`${window.origin}/eventtrigger`)
+   fetch(`${window.origin}/eventtrigger`,{
+   method: "POST",
+   credentials: "include",
+   body: JSON.stringify(filesize),
+   cache: "no-cache",
+   headers: new Headers({"content-type": "application/json"})
+   }).then(function (response) {
+       if (response.status == 202) {
+       $("#hidden-input").focus();
+       console.log(`Response 200, got ${response.status}`);
+       return;
+       };
+       
+   })
+});
+ 
 </script>
 {% endblock %}
