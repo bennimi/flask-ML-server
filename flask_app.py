@@ -4,24 +4,15 @@
 
 info: flask app
 """
-
-from flask import Flask, request, render_template, redirect, make_response, jsonify
+from app import app
+from flask import request, render_template, redirect, make_response, jsonify
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import numpy as np
 import pickle, sys, io, csv, time, itertools, collections, glob, datetime
-from sklearn.base import BaseEstimator, TransformerMixin
+from app.helper_functions import CustomUnpickler
 
-class TextTransformer(BaseEstimator, TransformerMixin):
-    def __init__(self, key):
-        self.key = key
-
-    def fit(self, X, y=None, *parg, **kwarg):
-        return self
-
-    def transform(self, X):
-        return X[self.key]
 
 def allowed_extensions(name_file):
     try: extension_file = name_file.rsplit('.',1)[1] 
@@ -51,11 +42,13 @@ def allowed_filesize(fobj):
 path = "/usr/app/"
 model_name = 'svc'
 
-app = Flask(__name__) #run when .py is called 
-app.config["ALLOWED_FILE_UPLOAD_EXTENSIONS"] = ['csv','txt']
-app.config["ALLOWED_FILE_UPLOAD_SIZE"] = 0.2 * 1024 * 1024 
-app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
+
+# app.config["ALLOWED_FILE_UPLOAD_EXTENSIONS"] = ['csv','txt']
+# app.config["ALLOWED_FILE_UPLOAD_SIZE"] = 0.2 * 1024 * 1024 
+# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
+# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
+    
+
 db = SQLAlchemy(app)
 
 # class StoreTweets(db.Model):
@@ -67,8 +60,11 @@ db = SQLAlchemy(app)
 #         return '<tweet %r>' %self.id 
 
 
+    
 #all_files = glob.glob(path+"*.pkl")
-model = pickle.load(open(path+model_name+".pkl", 'rb'))
+
+#model = pickle.load(open(path+model_name+".pkl", 'rb'))
+model = CustomUnpickler(open(path+model_name+".pkl", 'rb')).load()
 
 context = {'title':"predict tweets",
                'header':"About this page"}
@@ -124,10 +120,12 @@ def model_predict_file():
             
             ### if save to filesytem..
             #name_file = secure_filename(name_file)  
-
+            
             in_file = pd.read_csv(request.files['inputfile'],index_col=None, names=['tweet'])
             print("--> Uploaded file name: " + name_file, flush=True)
             print("Shape of input: {}".format(in_file.shape),flush=True)
+            if not pd.api.types.is_string_dtype(in_file['tweet']):
+                return redirect(request.url)
             #for row in in_file.iterrows():
             #    print(row,flush=True)
             preds = model.predict(in_file)
@@ -162,7 +160,8 @@ def input_event_trigger():
                                 ),200)
         return trigger_response
 
+
 if __name__ == '__main__':
-    #app.run()
-    app.run(host='0.0.0.0',port=8000) #,debug=True)
+     #app.run(host='localhost',port=8000) #,debug=True) # to run on windows directly
+     app.run() #host='0.0.0.0',port=8000) #,debug=True)
   

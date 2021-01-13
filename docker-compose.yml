@@ -4,6 +4,10 @@ services:
     build: . # dockerfile
     environment:
       - FLASK_ENV=development
+      - FLASK_APP=flask_app.py
+      - FLASK_RUN_HOST=0.0.0.0
+      - FLASK_RUN_PORT=8000
     ports:
       - "8000:8000"  
-    command: python flask_app.py
+    #ENTRYPOINT: bash 
+    command: flask run #python flask_app.py

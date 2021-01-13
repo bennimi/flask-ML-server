@@ -50,21 +50,20 @@ $("#inputfile").bind("change",function(){
        console.log(data.valid_filesize[0].status); 
        console.log(data.valid_extension[0].status); 
        if (data.valid_extension[0].status == 'False') {
-           for (i=0; i < data.valid_extension[0].extensions.length-1;i++){
-               x += "." + data.valid_extension[0].extensions[i] + ", ";
+           for (i=0; i < data.valid_extension[0].extensions.length-2;i++){
+               x += "<." + data.valid_extension[0].extensions[i] + ">, ";
                }; 
-           x += "." + data.valid_extension[0].extensions[data.valid_extension[0].extensions.length-1];
-           $("#eventresponse").text(`Please input a file extension: ${x} allowed.`);
+           x += "<." + data.valid_extension[0].extensions[data.valid_extension[0].extensions.length-2] + "> and <." + data.valid_extension[0].extensions[data.valid_extension[0].extensions.length-1] + ">";
+           $("#eventresponse").text(`Please input a extension: only ${x} allowed.`);
        } else if (data.valid_filesize[0].status == 'False'){
            var filesize = data.valid_filesize[0].filesize/1024/1024
-           $("#eventresponse").text(`Filesize exceeds the limit of: ${filesize.toFixed(2)} MB.`);
+           $("#eventresponse").text(`Filesize exceeds the limit of <${filesize.toFixed(2)} MB>.`);
        } else {
        console.log("cleared");
        }
    })
    .catch((error) => console.log(error))    
 });
-
 
  
 </script>

@@ -42,3 +42,45 @@ if not int(request.cookies.get('filesize')) <= app.config["ALLOWED_FILE_UPLOAD_S
     $("#response").html(data.event_trigger);
     }); 
 });
+ 
+ 
+ ######
+ 
+$("#inputfile").bind("change",function(){
+   var filesize = this.files[0].size;
+   var filename = this.files[0].name;
+   var x = "";
+   console.log(filesize);
+   console.log(filename);
+
+   fetch(`${window.origin}/eventtrigger`,{
+   method: "POST",
+   credentials: "include",
+   body: JSON.stringify({filename,filesize}),
+   cache: "no-cache",
+   headers: new Headers({"content-type": "application/json"})   
+   })
+   .then(function(response){
+       if (response.status == 200) {
+       return response.json();
+       }     
+   })
+   .then(function(data) {
+       console.log(data);
+       console.log(data.valid_filesize[0].status); 
+       console.log(data.valid_extension[0].status); 
+       if (data.valid_extension[0].status == 'False') {
+           for (i=0; i < data.valid_extension[0].extensions.length-1;i++){
+               x += "." + data.valid_extension[0].extensions[i] + ", ";
+               }; 
+           x += "." + data.valid_extension[0].extensions[data.valid_extension[0].extensions.length-1];
+           $("#eventresponse").text(`Please input a file extension: ${x} allowed.`);
+       } else if (data.valid_filesize[0].status == 'False'){
+           var filesize = data.valid_filesize[0].filesize/1024/1024
+           $("#eventresponse").text(`Filesize exceeds the limit of: ${filesize.toFixed(2)} MB.`);
+       } else {
+       console.log("cleared");
+       }
+   })
+   .catch((error) => console.log(error))    
+});
