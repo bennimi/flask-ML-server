@@ -1,4 +1,4 @@
-$("#fileinput-form").click(function(){
+$("#fileinput-form").change(function(){
     
     /*$.validator.setDefaults({
         errorClass: 'help-block',
@@ -37,6 +37,9 @@ $("#fileinput-form").click(function(){
     });
 
     $("#fileinput-form").validate({
+         showErrors: function(errorMap, errorList) {
+                // Do nothing here
+          },
           onfocusout: function(e) {  
                 this.element(e);       
           },

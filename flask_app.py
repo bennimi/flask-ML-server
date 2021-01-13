@@ -146,12 +146,20 @@ def input_event_trigger():
     if request.method == 'POST':
         received_info = request.get_json()
         print(received_info,flush=True)
-        if not allowed_extensions(received_info['filename']):
-            allowed_extension = 'False'
-        else: 
-            allowed_extension = 'True'
+        if not allowed_extensions(received_info['filename']): valid_extension = 'False'
+        else: valid_extension = 'True'
         
-        trigger_response = make_response(jsonify({'allowed_extension':allowed_extension}),200)
+        if not received_info['filesize'] <= app.config["ALLOWED_FILE_UPLOAD_SIZE"]: valid_filesize = 'False'
+        else: valid_filesize = 'True'
+
+        trigger_response = make_response(jsonify({'valid_extension':[
+                                {'status':valid_extension, 'extensions': app.config["ALLOWED_FILE_UPLOAD_EXTENSIONS"]}
+                                ],
+                                'valid_filesize':[
+                                 {'status':valid_filesize, 'filesize': app.config["ALLOWED_FILE_UPLOAD_SIZE"]},  
+                                 ]
+                                }
+                                ),200)
         return trigger_response
 
 if __name__ == '__main__':

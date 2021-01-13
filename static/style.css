@@ -15,6 +15,10 @@ div.container {
 }
 
 
+#eventresponse{
+    color: red;
+    font-style: italic;
+}
 
 
 .form-control input:focus {
