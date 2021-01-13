@@ -17,3 +17,28 @@ if not int(request.cookies.get('filesize')) <= app.config["ALLOWED_FILE_UPLOAD_S
        app.config["ALLOWED_FILE_UPLOAD_SIZE"],
        request.cookies.get('filesize')),flush=True)
      return redirect(request.url)
+ 
+    
+ # check input with async respone and returned newly returned page
+ {% if filename == 'True'%}
+       <input class="form-control" id="hidden-input" type="hidden"> 
+ {%endif%}
+ 
+ 
+ ######
+ $("#submit").bind("click",function(){
+    fetch(`${window.origin}/eventtrigger`,{
+   method: "POST",
+   credentials: "include",
+   body: JSON.stringify("filesize"),
+   cache: "no-cache",
+   headers: new Headers({"content-type": "application/json"})
+   })
+    .then(function(response){
+        return response.json();
+    })
+    .then(function(data){
+    console.log(data.event_trigger);
+    $("#response").html(data.event_trigger);
+    }); 
+});

@@ -4,7 +4,6 @@
 {% block content %}
 
 
-
 <div class = "container", id="container">
 <form id= "fileinput-form" action="/file" method="POST", enctype="multipart/form-data" >
   <div class="form-group col-md-4" >
@@ -15,6 +14,7 @@
   </div>
   <div style="margin-top:10px">
    <button class="btn btn-primary" id="submit" type="submit">Predict</button>
+   <div id="eventresponse"> </div>
   </div>
 </form>
 </div> 
@@ -24,25 +24,32 @@
 
 {% block script %}
 <script>
+
 $("#inputfile").bind("change",function(){
    var filesize = this.files[0].size;
+   var filename = this.files[0].name;
    console.log(filesize);
-   console.log(`${window.origin}/eventtrigger`)
+   console.log(filename);
+
    fetch(`${window.origin}/eventtrigger`,{
    method: "POST",
    credentials: "include",
-   body: JSON.stringify(filesize),
+   body: JSON.stringify({filename,filesize}),
    cache: "no-cache",
-   headers: new Headers({"content-type": "application/json"})
-   }).then(function (response) {
-       if (response.status == 202) {
-       $("#hidden-input").focus();
-       console.log(`Response 200, got ${response.status}`);
-       return;
-       };
-       
-   })
+   headers: new Headers({"content-type": "application/json"})   })
+   .then(function(response){
+       if (response.status == 200) {
+       return response.json();
+       }     
+       })
+   .then(function(data) {
+       console.log(data.allowed_extension);
+       $("#eventresponse").text(data.allowed_extension);
+       })
+   .catch((error) => console.log(error))    
 });
+
+
  
 </script>
 {% endblock %}

@@ -116,10 +116,10 @@ def model_predict_file():
                 print("File extension validation was apparently bypassed, please check...",flush=True)
                 return redirect(request.url)
         
-            length_file = allowed_filesize(request.files['inputfile'])
-            if not length_file <= app.config["ALLOWED_FILE_UPLOAD_SIZE"]: 
+            size_file = allowed_filesize(request.files['inputfile'])
+            if not size_file <= app.config["ALLOWED_FILE_UPLOAD_SIZE"]: 
                 print("Uploaded file exceeded the size limit {}: {}".format(app.config["ALLOWED_FILE_UPLOAD_SIZE"],
-                                                                        length_file),flush=True)
+                                                                        size_file),flush=True)
                 return redirect(request.url)
             
             ### if save to filesytem..
@@ -144,7 +144,14 @@ def model_predict_file():
 @app.route('/eventtrigger',methods=['POST'])
 def input_event_trigger():
     if request.method == 'POST':
-        trigger_response = make_response(jsonify({'event_trigger':"True"}),2002)
+        received_info = request.get_json()
+        print(received_info,flush=True)
+        if not allowed_extensions(received_info['filename']):
+            allowed_extension = 'False'
+        else: 
+            allowed_extension = 'True'
+        
+        trigger_response = make_response(jsonify({'allowed_extension':allowed_extension}),200)
         return trigger_response
 
 if __name__ == '__main__':
