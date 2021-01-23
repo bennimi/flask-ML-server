@@ -84,3 +84,26 @@ $("#inputfile").bind("change",function(){
    })
    .catch((error) => console.log(error))    
 });
+
+###
+$("#submit").bind("click",function(){
+fetch(`${window.origin}/file`,{
+   method: "POST",
+   credentials: "include",
+   cache: "no-cache",
+   headers: new Headers({"content-type": "application/json"})   
+   })
+   .then(function(response){
+       if (response.status == 222) {
+       console.log(response.status)
+       return response.json();
+       }     
+   })
+   .then(function(data) {
+       console.log(data.valid_structure[0].status); 
+       if (data.valid_structure[0].status == 'False') {
+        $("#eventresponse").text(`Invalid file structure: only tweets should be in file.`);
+        }
+   })
+   .catch((error) => console.log(error)) 
+});

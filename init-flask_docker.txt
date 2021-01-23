@@ -1,7 +1,0 @@
-docker run -p 8000:8000 --volumes-from airflow_webserver airflow-setup_webserver flask-setup_webserver 
-
-#docker run -ti --rm  flask-setup_webpage bash
-
-export FLASK_APP=flask_app.py
-
-export FLASK_ENV=development # for lazy loading during development

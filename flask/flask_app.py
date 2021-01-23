@@ -4,16 +4,17 @@
 
 info: flask app
 """
-from app import app
-from flask import request, render_template, redirect, make_response, jsonify
+from app import app, db
+from flask import request, render_template, redirect, make_response, jsonify, abort
 from werkzeug.utils import secure_filename
 from flask_sqlalchemy import SQLAlchemy
 import pandas as pd
 import numpy as np
-import pickle, sys, io, csv, time, itertools, collections, glob, datetime
+import os, pickle, sys, io, csv, time, itertools, collections, glob, datetime
 from app.helper_functions import CustomUnpickler
 
 
+# check file specs matching config
 def allowed_extensions(name_file):
     try: extension_file = name_file.rsplit('.',1)[1] 
     except: return False
@@ -37,20 +38,15 @@ def allowed_filesize(fobj):
     # in-memory file object that doesn't support seeking or tell
     return 0  #assume small enough
 
+# print in logs (for test purpose)
+def print_logs(name_file,in_file_shape,preds,preds_percentage_neg):
+    print("--> Uploaded file name: " + name_file, flush=True)
+    print("Shape of input: {}".format(in_file_shape),flush=True)
+    print("--> Predictions: {}".format(preds), flush=True)
+    print("--> Percentage of negative tweets in upload: {}".format(preds_percentage_neg),flush=True)
 
-#path = "C:/Virtual-Environments/docker-shared/airflow-setup/datasets/cleaned/"
-path = "/usr/app/"
-model_name = 'svc'
 
-
-# app.config["ALLOWED_FILE_UPLOAD_EXTENSIONS"] = ['csv','txt']
-# app.config["ALLOWED_FILE_UPLOAD_SIZE"] = 0.2 * 1024 * 1024 
-# app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
-# app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///'
-    
-
-db = SQLAlchemy(app)
-
+# connect db     
 # class StoreTweets(db.Model):
 #     id = db.Columns(db.Integer,primary_key=True)
 #     timestamp = db.Columns(db.DateTime,default=datetime.datetime.now)
@@ -60,28 +56,32 @@ db = SQLAlchemy(app)
 #         return '<tweet %r>' %self.id 
 
 
-    
-#all_files = glob.glob(path+"*.pkl")
+# load model 
 
+#path = "C:/Virtual-Environments/docker-shared/airflow-setup/datasets/cleaned/"    
+#all_files = glob.glob(path+"*.pkl")
+path = app.config['MODEL_IMPORT_PATH']
+model_name = 'svc'
 #model = pickle.load(open(path+model_name+".pkl", 'rb'))
 model = CustomUnpickler(open(path+model_name+".pkl", 'rb')).load()
 
-context = {'title':"predict tweets",
-               'header':"About this page"}
+
 
 @app.route('/')
 def project_home():
-    return render_template('about.html', context=context)
+    #print(os.getenv("APP_NAME"),flush=True)
+    return render_template('about.html', title='start')
 
 @app.route('/about')
 def project_about():
-    return render_template('about.html', context=context)
+    #abort(500)
+    return render_template('about.html', title='home')
 
 
 @app.route('/tweet',methods=['GET','POST'])
 def model_predict():
     if request.method == 'GET':
-        return render_template('single_predict.html', context=context)
+        return render_template('single_predict.html', title='predict tweet')
     
     in_text = request.form.get('input_tweet')   
     try:
@@ -97,9 +97,10 @@ def model_predict():
     if pred [0] == 4: pred = "This is a positive Tweet"
     else: pred = "This is a negative Tweet"
     return render_template('single_predict.html',
-                           context=context,
+                           title='predicted!',
                            pred=pred,
                            in_text=in_text)
+
 
 @app.route('/file',methods=['GET','POST'])
 def model_predict_file():
@@ -122,22 +123,30 @@ def model_predict_file():
             #name_file = secure_filename(name_file)  
             
             in_file = pd.read_csv(request.files['inputfile'],index_col=None, names=['tweet'])
-            print("--> Uploaded file name: " + name_file, flush=True)
-            print("Shape of input: {}".format(in_file.shape),flush=True)
+            
             if not pd.api.types.is_string_dtype(in_file['tweet']):
-                return redirect(request.url)
+                print("Invalid structure",flush=True)
+                #return make_response(jsonify({'valid_structure':'False'}),222)
+                return render_template('file_predict.html', title='predict tweets',structure_file ='invalid')
+            
             #for row in in_file.iterrows():
             #    print(row,flush=True)
+            
+            ### there might be a problem if cleaned tweets are empty... solution pending (change pre-processing?!)
             preds = model.predict(in_file)
-            print("--> Predictions: {}".format(preds), flush=True)
+           
             preds_percentage = collections.Counter(preds)
             preds_percentage_neg = round(preds_percentage[0]/len(preds),2)
-            print("--> Percentage of negative tweets in upload: {}".format(preds_percentage_neg),flush=True)
-            return redirect(request.url)
+            print_logs(name_file,in_file.shape,preds,preds_percentage_neg)
+            
+            results_response = list(zip(preds.tolist(),in_file.tweet.to_list()))
+            #results_response = {'predictions': preds.tolist(), 'tweets': in_file.tweet.to_list()}
+            
+            return render_template('file_predict.html',results_response = results_response)
         else:
            return redirect(request.url) 
     else:
-        return render_template('file_predict.html',context=context)
+        return render_template('file_predict.html')
     
 @app.route('/eventtrigger',methods=['POST'])
 def input_event_trigger():
@@ -163,5 +172,7 @@ def input_event_trigger():
 
 if __name__ == '__main__':
      #app.run(host='localhost',port=8000) #,debug=True) # to run on windows directly
-     app.run() #host='0.0.0.0',port=8000) #,debug=True)
+     #app.run(host='0.0.0.0',port=8000) #,debug=True)
+     
+     app.run() 
   

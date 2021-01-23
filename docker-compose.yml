@@ -1,13 +1,17 @@
 version: '3'
 services:
   webpage:
-    build: . # dockerfile
+    build: ./flask # dockerfile
+    restart: always
     environment:
       - FLASK_ENV=development
       - FLASK_APP=flask_app.py
-      - FLASK_RUN_HOST=0.0.0.0
-      - FLASK_RUN_PORT=8000
+    expose:
+      - 5000 # db connection
+      - 8010 # uwsgi
+  nginx:
+    build: ./nginx # dockerfile
+    restart: always
     ports:
-      - "8000:8000"  
-    #ENTRYPOINT: bash 
-    command: flask run #python flask_app.py
+      - "8000:8000"
+  
