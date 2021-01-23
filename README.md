@@ -19,7 +19,7 @@ Docker-compose.yml to set up the following services:
 		* host name: postgres
 		* port: 5432
 		* username/pw: root
-
+___________________________________________________________________________________________________
 
 Future work:
 * setup bottlenecks on kubernets
