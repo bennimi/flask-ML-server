@@ -14,6 +14,10 @@ div.container {
     font-style: italic;
 }
 
+.alert-file-predict{
+    background-color:ghostwhite;
+}
+
 
 #eventresponse{
     color: red;

@@ -1,17 +1,67 @@
-version: '3'
+version: '3.6'
 services:
-  webpage:
-    build: ./flask # dockerfile
-    restart: always
-    environment:
-      - FLASK_ENV=development
-      - FLASK_APP=flask_app.py
-    expose:
-      - 5000 # db connection
-      - 8010 # uwsgi
-  nginx:
-    build: ./nginx # dockerfile
-    restart: always
-    ports:
-      - "8000:8000"
+    postgres:
+        #build: ./postgres # no need to create new images
+        image: postgres:9.6
+        restart: on-failure
+        environment: 
+            - PG_MODE=primary
+            - DATABASE_HOST=0.0.0.0
+            - POSTGRES_USER=root
+            - POSTGRES_PASSWORD=root
+            - POSTGRES_DB=root  
+        networks:
+            - postgres-default
+        expose:
+              - 5432       
+        volumes:
+              - ./postgres/init_flask_db.sql:/docker-entrypoint-initdb.d/init_flask_db.sql
+              - postgres_data:/var/lib/postgresql/data/
+
+    pgadmin-compose:
+        image: dpage/pgadmin4
+        environment: 
+            PGADMIN_CONFIG_CONSOLE_LOG_LEVEL: 30 
+            PGADMIN_DEFAULT_EMAIL: "admin@mail.com"
+            PGADMIN_DEFAULT_PASSWORD: "admin123!"
+        networks:
+            - postgres-default
+        ports: 
+            - "5555:80"
+        depends_on: 
+            - postgres  
+    webpage:
+        build: ./flask # dockerfile
+        restart: always
+        environment:
+          - FLASK_ENV=development
+          - FLASK_APP=flask_app.py
+          - SQLALCHEMY_TRACK_MODIFICATIONS=False
+          - DATABASE_URL=postgresql://root:root@postgres:5432/flask_db # connect to flask_db inside postgres service 
+        expose:
+          #- 5000 # db connection
+          - 8010 # uwsgi
+        networks:
+          - postgres-default
+        depends_on:
+          - postgres
+        command: bash -c 'while !</dev/tcp/postgres/5432; do sleep 3; done; uwsgi app.ini' # start-up uwsgi
+    nginx:
+        build: ./nginx # dockerfile
+        restart: always
+        ports:
+          - "8000:8000"
+        networks:
+          - postgres-default
+        depends_on:
+          - postgres
+
+# input network specs if needed
+networks:
+  postgres-default:
+    driver: bridge  
+
+# attach persistant docker volume    
+volumes:
+ postgres_data:
   

@@ -22,8 +22,10 @@
   </div>
   <br/>
   
-{% if results_response %}  
-  <table class="table table-hover table-sm">
+{% if results_response %} 
+<div class="alert alert-file-predict alert-dismissible fade show" role="alert" style="display:inline-block;"> 
+<button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+ <table class="table table-hover table-sm">
     <thead>
      <tr class="table-dark">
       <th scope="col">#</th>
@@ -42,7 +44,8 @@
       {% endfor %}
     </tr>
   </tbody>
-</table>
+ </table>
+</div>
 {% endif %}
 
 

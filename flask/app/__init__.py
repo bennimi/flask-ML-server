@@ -9,11 +9,13 @@ from flask import Flask
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
-#db = SQLAlchemy(app)
+db = SQLAlchemy(app)
+
 if app.config["ENV"] == "development":
     app.config.from_object("config.TwitterSentimentConfig")
 
 #print("App config loaded: ", app.config["ENV"])
+
 
 
 #__all__ = ['views','helper_functions']

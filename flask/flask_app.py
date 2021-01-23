@@ -7,9 +7,9 @@ info: flask app
 from app import app, db
 from flask import request, render_template, redirect, make_response, jsonify, abort
 from werkzeug.utils import secure_filename
-from flask_sqlalchemy import SQLAlchemy
+from sqlalchemy.ext.automap import automap_base
 import pandas as pd
-import numpy as np
+#import numpy as np
 import os, pickle, sys, io, csv, time, itertools, collections, glob, datetime
 from app.helper_functions import CustomUnpickler
 
@@ -34,11 +34,10 @@ def allowed_filesize(fobj):
         return size
     except (AttributeError, IOError):
         pass
-
     # in-memory file object that doesn't support seeking or tell
     return 0  #assume small enough
 
-# print in logs (for test purpose)
+# print in logs file_predict(test purpose)
 def print_logs(name_file,in_file_shape,preds,preds_percentage_neg):
     print("--> Uploaded file name: " + name_file, flush=True)
     print("Shape of input: {}".format(in_file_shape),flush=True)
@@ -46,19 +45,28 @@ def print_logs(name_file,in_file_shape,preds,preds_percentage_neg):
     print("--> Percentage of negative tweets in upload: {}".format(preds_percentage_neg),flush=True)
 
 
-# connect db     
-# class StoreTweets(db.Model):
-#     id = db.Columns(db.Integer,primary_key=True)
-#     timestamp = db.Columns(db.DateTime,default=datetime.datetime.now)
-#     tweet = db.Columns(db.String(),nullable=True)
-    
-#     def __repr__(self):
-#         return '<tweet %r>' %self.id 
+# init connection to already existing db table
+try: 
+    Base = automap_base()
+    Base.prepare(db.engine,reflect=True)
+    tweet_table = Base.classes.tweets_data
+except Exception as e: print("While connecting to DB, an error has occured: \n"+ str(e),flush=True)
 
+# data inserter
+def db_insert_data(tweets,preds):
+    for idx, tweet in enumerate(tweets):
+        pred = int(preds[idx]) # need to be converted from np.int to int
+        try:
+            tweet_insert = tweet_table(timestamp_col=datetime.datetime.now(), tweets_org=tweet, predictions=pred)
+            db.session.add(tweet_insert)
+            db.session.commit()
+            print("DB commit successful: {}".format(tweet),flush=True)
+        except Exception as e:
+            print("While commiting to DB, an error has occured: {}\n{}".format(tweet,str(e)),flush=True)
+        
 
 # load model 
-
-#path = "C:/Virtual-Environments/docker-shared/airflow-setup/datasets/cleaned/"    
+ 
 #all_files = glob.glob(path+"*.pkl")
 path = app.config['MODEL_IMPORT_PATH']
 model_name = 'svc'
@@ -66,10 +74,8 @@ model_name = 'svc'
 model = CustomUnpickler(open(path+model_name+".pkl", 'rb')).load()
 
 
-
 @app.route('/')
 def project_home():
-    #print(os.getenv("APP_NAME"),flush=True)
     return render_template('about.html', title='start')
 
 @app.route('/about')
@@ -84,16 +90,9 @@ def model_predict():
         return render_template('single_predict.html', title='predict tweet')
     
     in_text = request.form.get('input_tweet')   
-    try:
-        pred = model.predict(pd.DataFrame([in_text], columns = ['tweet']))
-    except:
-        redirect('/tweet')
-    try:
-        db.session.add()
-        db.session.commit()
-    except:
-        pass
-    
+    pred = model.predict(pd.DataFrame([in_text], columns = ['tweet']))
+    db_insert_data([in_text],pred)
+ 
     if pred [0] == 4: pred = "This is a positive Tweet"
     else: pred = "This is a negative Tweet"
     return render_template('single_predict.html',
@@ -101,13 +100,10 @@ def model_predict():
                            pred=pred,
                            in_text=in_text)
 
-
 @app.route('/file',methods=['GET','POST'])
 def model_predict_file():
-    
     if request.method == 'POST':
-        if request.files:
-            
+        if request.files:      
             name_file = request.files['inputfile'].filename  
             if not allowed_extensions(name_file):
                 print("File extension validation was apparently bypassed, please check...",flush=True)
@@ -125,7 +121,7 @@ def model_predict_file():
             in_file = pd.read_csv(request.files['inputfile'],index_col=None, names=['tweet'])
             
             if not pd.api.types.is_string_dtype(in_file['tweet']):
-                print("Invalid structure",flush=True)
+                print("Invalid input structure",flush=True)
                 #return make_response(jsonify({'valid_structure':'False'}),222)
                 return render_template('file_predict.html', title='predict tweets',structure_file ='invalid')
             
@@ -134,7 +130,9 @@ def model_predict_file():
             
             ### there might be a problem if cleaned tweets are empty... solution pending (change pre-processing?!)
             preds = model.predict(in_file)
-           
+            
+            db_insert_data(in_file['tweet'],preds)
+            
             preds_percentage = collections.Counter(preds)
             preds_percentage_neg = round(preds_percentage[0]/len(preds),2)
             print_logs(name_file,in_file.shape,preds,preds_percentage_neg)
@@ -147,6 +145,7 @@ def model_predict_file():
            return redirect(request.url) 
     else:
         return render_template('file_predict.html')
+
     
 @app.route('/eventtrigger',methods=['POST'])
 def input_event_trigger():
@@ -174,5 +173,5 @@ if __name__ == '__main__':
      #app.run(host='localhost',port=8000) #,debug=True) # to run on windows directly
      #app.run(host='0.0.0.0',port=8000) #,debug=True)
      
-     app.run() 
+     app.run()  #defs in docker files
   
