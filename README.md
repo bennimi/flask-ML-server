@@ -7,10 +7,9 @@ Docker-compose.yml to set up the following services:
 	* client-side input validation using JS
 	* client-side input validation utilizing fetch-api
 * uWSGI as application server (combined with flask)
-	* load balancer
+	* handles flask app
 	* routes traffic from flask to nginx
 * nginx as HTTP webserver
-	* handles requests in parallel
 
 * postgres as backend db
 
@@ -22,5 +21,5 @@ Docker-compose.yml to set up the following services:
 ___________________________________________________________________________________________________
 
 Future work:
-* setup bottlenecks on kubernets
+* setup bottlenecks on kubernetes
 

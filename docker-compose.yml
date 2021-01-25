@@ -34,7 +34,7 @@ services:
         build: ./flask # dockerfile
         restart: always
         environment:
-          - FLASK_ENV=development
+          - FLASK_ENV=production
           - FLASK_APP=flask_app.py
           - SQLALCHEMY_TRACK_MODIFICATIONS=False
           - DATABASE_URL=postgresql://root:root@postgres:5432/flask_db # connect to flask_db inside postgres service 
