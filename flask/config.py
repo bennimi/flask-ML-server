@@ -6,7 +6,7 @@ Created on Wed Jan 13 19:24:51 2021
 """
 
 import os
-#basedir = os.path.abspath(os.path.dirname(__file__))
+basedir = os.path.abspath(os.path.dirname(__file__))
 
 class Config(object):
     TESTING = False

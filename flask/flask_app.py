@@ -93,8 +93,8 @@ def model_predict():
     pred = model.predict(pd.DataFrame([in_text], columns = ['tweet']))
     db_insert_data([in_text],pred)
  
-    if pred [0] == 4: pred = "This is a positive Tweet"
-    else: pred = "This is a negative Tweet"
+    if pred [0] == 4: pred = "positive"
+    else: pred = "negative"
     return render_template('single_predict.html',
                            title='predicted!',
                            pred=pred,

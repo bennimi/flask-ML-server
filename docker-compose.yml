@@ -16,7 +16,7 @@ services:
               - 5432       
         volumes:
               - ./postgres/init_flask_db.sql:/docker-entrypoint-initdb.d/init_flask_db.sql
-              - postgres_data:/var/lib/postgresql/data/
+              - flask_data:/var/lib/postgresql/data/
 
     pgadmin-compose:
         image: dpage/pgadmin4
@@ -63,5 +63,5 @@ networks:
 
 # attach persistant docker volume    
 volumes:
- postgres_data:
+ flask_data:
   

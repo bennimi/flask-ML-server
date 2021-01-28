@@ -1,5 +1,5 @@
 body {
-  background-color: ghostwhite;
+  background-color: ghostwhite !important;
 }
 
 div.container {
@@ -14,10 +14,12 @@ div.container {
     font-style: italic;
 }
 
-.alert-file-predict{
-    background-color:ghostwhite;
-}
 
+.outputdata{
+    background-color:ghostwhite !important;
+    border-style: hidden !important;
+    display:inline-block !important;
+}
 
 #eventresponse{
     color: red;

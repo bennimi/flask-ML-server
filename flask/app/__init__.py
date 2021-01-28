@@ -17,7 +17,7 @@ if app.config["ENV"] == "development":
 if app.config["ENV"] == "production":
     app.config.from_object("config.ProductionConfig")
     
-#print("App config loaded: ", app.config["ENV"])
+print("App config loaded: ", app.config["ENV"], flush=True)
 
 
 
